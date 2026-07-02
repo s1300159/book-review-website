@@ -1,0 +1,14 @@
+[MASTER]
+load-plugins=pylint_django
+
+[DJANGO]
+django-settings-module=config.settings
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring
+
+[FORMAT]
+max-line-length=88
