@@ -1,0 +1,42 @@
+Exercise 1
+
+1.Book Review Website
+
+2.Short description
+
+This web application allows users to browse books, search for books by title, read reviews, and find recommended books based on star ratings. Registered users can post their own reviews with star ratings, and the system calculates the average rating for each book.
+
+
+3.Main user actions
+
+Users can display a list of all books registered in the system.
+Users can search for books by entering part of a book title.
+Users can click on a book to see its details, reviews, and average rating.
+Users can sort books by star rating to find highly recommended books.
+Users can filter books by a minimum rating.
+Registered users can write one review for each book.
+
+
+4.Basic data model idea
+
+The system will need the following data entities:
+
+・Book: title, cover image
+・Review: review text, star rating, created date
+・User: Django authentication user information, such as username and securely managed authentication credentials
+
+Each review is associated with one book and one user.
+One user cannot write more than one review for the same book.
+Each book has an average rating calculated from all review ratings.
+The average rating is used to show recommended books and to sort books by rating.
+
+
+5.Note on the user interface
+
+The main page shows a list of books with their titles, cover images, and average ratings.
+Books with higher average ratings can be shown near the top as recommended books.
+A search box allows users to find books by title.
+Users can use a rating filter to display only books above a selected rating.
+Clicking a book opens a detail page that shows the book cover, review list, and average rating.
+If a book has no reviews, the page clearly shows that there are no reviews yet.
+The book list supports pagination with Next and Previous links.

@@ -1,27 +1,50 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 ## Project Scope
 This is a Django web application for posting and reading book reviews.
 
-Main features:
-- Browse books registered in the system.
-- Search books by partial title.
-- Open a book detail page.
-- Read reviews and average ratings.
-- Allow registered users to write one review for each book.
-- Sort or filter books by rating.
-
-Main app:
-- `reviews/` — book listing, search, book details, reviews, and ratings.
+Main directories:
+- `reviews/` — the main app for books, reviews, ratings, search, and listing features.
 - `config/` — Django settings, URL configuration, ASGI, and WSGI settings.
 
-## Important Project Conventions
-- Keep database structure in `reviews/models.py`.
-- Keep request handling in `reviews/views.py`.
-- Do not put business rules inside templates.
-- Prefer Django ORM over raw SQL.
+## Current State
+- The initial Django project and `reviews` app setup are complete.
+- `reviews/models.py` and `reviews/views.py` are still close to their generated state.
+- The `Book` and `Review` models have not been implemented.
+- Book listing, search, details, review submission, average ratings, sorting, filtering, and pagination have not been implemented.
+- Except for the Django admin, URLs for the main features have not been implemented.
+- `forms.py` and template directories do not exist yet.
+- Development tools including pytest, Black, and Pylint are configured.
+- OpenSpec has been initialized, but no formal specification has been written yet.
+
+## Target Features
+- List registered books.
+- Search books by partial title match.
+- Show book details.
+- Display reviews and star ratings.
+- Allow logged-in users to submit reviews.
+- Allow at most one review per user for each book.
+- Calculate and display the average rating for each book.
+- Sort books by rating.
+- Filter books by a minimum rating.
+- Paginate book listings.
+- Use HTMX for partial page updates when dynamic interactions required by the coursework benefit from it.
+
+Review editing and deletion are not currently confirmed required features. Add them only if a future task explicitly requires them.
+
+## Development Approach
+- Work database-first and backend-first.
+- Prefer small, focused changes over large refactors.
+- Keep database structure in `reviews/models.py` and request handling in `reviews/views.py`.
+- Use the Django ORM rather than raw SQL.
+- Keep complex business, database, and permission logic out of templates.
 - Use Django forms or ModelForms for user input validation when appropriate.
-- Keep templates focused on presentation, not database or permission logic.
+- Prefer Django's standard authentication system.
+- Prevent duplicate reviews both in application validation and with a database constraint.
+- Treat HTMX as an optional implementation choice for required dynamic interactions; it is not currently installed or in use.
+- Add or update tests for new features where practical.
+- Do not commit or push unless explicitly instructed.
+- Before starting work, explain the plan in Japanese. After completing work, explain the changes and test results in Japanese.
 
 ## Commands
 - Run the development server: `uv run python manage.py runserver`
@@ -32,41 +55,18 @@ Main app:
 - Format Python code: `uv run black .`
 - Run linting: `uv run pylint reviews config`
 
-## Fragile Areas
-- The rule that one user can write at most one review for the same book.
-- Rating calculation and average rating display.
-- Book-title search and rating-based filtering or sorting.
-- Relationships among Book, Review, and User.
-- Any permission checks related to creating, editing, or deleting reviews.
+## Coupled and Fragile Areas
+- Do not edit old migration files after they have been applied. Create a new migration for model changes.
+- When changing models, also check migrations, admin configuration, tests, forms, and views.
+- When changing review rules, check validation, database uniqueness constraints, permissions, and tests.
+- When changing rating logic, check list and detail pages, filtering, sorting, and tests.
+- When changing URL names, check templates, redirects, and URL configuration.
+- Give particular attention to duplicate-review prevention, average-rating calculations, partial-title search, rating filters, sorting, pagination, and authentication requirements.
 
-## Coupling Changes
-When changing:
-- Models → also check migrations, admin configuration, tests, forms, and views.
-- Review rules → also check uniqueness constraints, validation, and related tests.
-- Rating logic → also check book list pages, detail pages, filters, sorting, and tests.
-- URL names → also check templates, redirects, and URL configuration.
-- Permissions → also check views, templates, and tests.
-
-## Constraints
-- Do not edit old migration files after they have been applied. Create a new migration instead.
-- Do not rename URL names or model fields unless explicitly required.
-- Prefer small, focused changes over large refactors.
-- Do not introduce a frontend framework unless it is necessary. Prefer Django templates and HTMX.
-- Keep dependencies managed through `uv`.
-
-## Documentation Usage
-- Use `openspec/specs/*` as the source of truth for technical and runtime documentation.
-- Use `openspec/config.yaml` for project-level context.
-- Use `openspec/notes/*` only for ideas or backlog notes, not as authoritative specifications.
-- Keep code and specifications consistent.
-- When code and documentation conflict, report the conflict and propose a correction.
-- When a new feature is implemented, suggest updating the relevant OpenSpec document.
-
-## Test Expectations
-Add or update tests for:
-- Creating reviews.
-- Preventing duplicate reviews by the same user for the same book.
-- Searching books by partial title.
-- Filtering or sorting books by rating.
-- Average rating calculation.
-- Permissions for review creation or modification.
+## Documentation
+- If specifications are added under `openspec/specs/`, treat them as the formal source of truth.
+- `openspec/specs/` is currently empty.
+- `openspec/config.yaml` currently contains only its initial configuration.
+- When no OpenSpec document exists, check the task description, `README.md`, and implementation code.
+- Keep code and any specifications consistent. Report conflicts and propose a correction.
+- When implementing a new feature covered by OpenSpec, suggest updating the relevant specification.
