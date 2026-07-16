@@ -105,3 +105,53 @@ The application uses a simple web application architecture. The browser sends re
   - Book table
   - Review table
 ```
+
+## Database schema
+
+### Book model
+
+The Book model is implemented in `reviews/models.py`.
+
+Fields:
+
+* `title`: required `CharField(max_length=200)`
+* `cover_image`: optional `ImageField(upload_to="book_covers/", blank=True)`
+* `description`: optional `TextField(blank=True)`
+
+`Book.__str__()` returns the book title.
+
+The average rating is not stored as a database field. It is calculated with the
+Django ORM from the `rating` values of related reviews. A book without reviews
+has an average rating of `None`. Display rounding is outside the scope of
+Exercise 5.
+
+### Review model
+
+The Review model is implemented in `reviews/models.py`.
+
+Fields:
+
+* `text`: required `TextField`
+* `rating`: required `IntegerField` limited to values from 1 through 5
+* `created_at`: `DateTimeField(auto_now_add=True)`
+* `book`: required foreign key to Book with `CASCADE` and
+  `related_name="reviews"`
+* `user`: required foreign key to Django's configured authentication User with
+  `CASCADE` and `related_name="reviews"`
+
+`Review.__str__()` returns a concise string containing the username and book
+title.
+
+### Relationships and constraints
+
+The project uses Django's standard authentication User model and does not
+define a custom User model.
+
+Each Review belongs to exactly one Book and one User. A named database
+`UniqueConstraint` on `user` and `book` guarantees that a user can review the
+same book only once. Model validation also reports an existing review for the
+same user and book before saving when validation is run.
+
+The rating field uses `MinValueValidator(1)` and `MaxValueValidator(5)`.
+A named database `CheckConstraint` also guarantees that stored ratings are
+between 1 and 5.
