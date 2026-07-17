@@ -43,8 +43,51 @@ Review editing and deletion are not currently confirmed required features. Add t
 - Prevent duplicate reviews both in application validation and with a database constraint.
 - Treat HTMX as an optional implementation choice for required dynamic interactions; it is not currently installed or in use.
 - Add or update tests for new features where practical.
-- Do not commit or push unless explicitly instructed.
-- Before starting work, explain the plan in Japanese. After completing work, explain the changes and test results in Japanese.
+- Before starting work, explain the plan in Japanese. After completing work, report the changes, verification results, and remaining decisions in Japanese.
+
+## Git Workflow and Autonomous Execution
+For work on a dedicated feature branch based on an approved Issue or OpenSpec change, Codex may proceed without waiting for confirmation at every step. This includes:
+- Reviewing the Issue, `AGENTS.md`, docs, OpenSpec, and current code.
+- Creating or updating an OpenSpec proposal and design, then applying it within the approved Issue or OpenSpec scope.
+- Adding necessary dependencies; implementing the scoped feature; creating and applying migrations; and adding or updating tests.
+- Running formatting, Django checks, tests, static analysis, and migration checks; performing focused refactoring needed for the approved work.
+- Updating related documentation and OpenSpec tasks.
+- Staging only related changes, committing and pushing to the feature branch, and creating a Pull Request. If PR creation is unavailable, prepare its title and body.
+- Committing and pushing follow-up fixes to an existing Pull Request.
+
+For minor implementation decisions, use the Issue, OpenSpec, docs, existing code, and this file as guidance, then explain the decision in the final report.
+
+Recommended flow:
+1. Review the Issue, this file, docs, and OpenSpec.
+2. Design with OpenSpec when needed, then implement on a feature branch.
+3. Run tests, formatting, static analysis, Django checks, and focused refactoring.
+4. Commit and push the feature branch, then create a Pull Request.
+5. Apply review feedback and push follow-up commits.
+6. After explicit user approval, archive OpenSpec, merge, and delete the feature branch.
+
+Do not perform the following without explicit user permission:
+- Merge a Pull Request into `main`, or commit or push directly to `main`.
+- Delete a feature branch, archive an OpenSpec change, or manually close an Issue.
+- Use destructive Git operations such as `git reset --hard`, or discard the user's uncommitted changes.
+- Change or display credentials, secrets, or other sensitive information.
+- Add large features or perform broad refactoring outside the approved assignment scope.
+
+A Pull Request may use `Closes #<number>` so that merging closes its Issue automatically.
+
+Before committing and pushing, confirm that:
+- No unrelated files are included and `git diff --check` succeeds.
+- Relevant tests, Django system checks, and Black checks succeed.
+- Migrations are consistent and no model change is missing a new migration.
+- Newly written code has no serious Pylint warning. Report existing warnings separately from warnings introduced by the current change.
+
+Use short, specific English commit messages. Use `Refs #<number>` for work-in-progress commits when appropriate, and `Closes #<number>` in the Pull Request body that should close an Issue.
+
+Stop and report instead of proceeding when:
+- Specifications materially conflict, or the work conflicts with `main` or other changes.
+- Tests fail and the cause cannot be resolved safely.
+- A migration may destroy existing data.
+- Authentication, additional permissions, or work far beyond the assignment scope is required.
+- A decision is needed about merging a Pull Request or archiving an OpenSpec change.
 
 ## Commands
 - Run the development server: `uv run python manage.py runserver`
@@ -63,10 +106,18 @@ Review editing and deletion are not currently confirmed required features. Add t
 - When changing URL names, check templates, redirects, and URL configuration.
 - Give particular attention to duplicate-review prevention, average-rating calculations, partial-title search, rating filters, sorting, pagination, and authentication requirements.
 
-## Documentation
+## Documentation and OpenSpec
 - If specifications are added under `openspec/specs/`, treat them as the formal source of truth.
 - `openspec/specs/` is currently empty.
 - `openspec/config.yaml` currently contains only its initial configuration.
 - When no OpenSpec document exists, check the task description, `README.md`, and implementation code.
-- Keep code and any specifications consistent. Report conflicts and propose a correction.
-- When implementing a new feature covered by OpenSpec, suggest updating the relevant specification.
+- Keep code and specifications consistent. Report conflicts and propose a correction.
+- Update the relevant specification when implementing a feature covered by OpenSpec.
+
+## Work Report
+After work, report concisely in Japanese:
+- Implementation and changed files.
+- Tests and verification results.
+- Warnings or unresolved items.
+- Commit and push results, Pull Request status, and `git status`.
+- Decisions that still require the user.
