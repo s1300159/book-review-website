@@ -111,6 +111,21 @@ class TestBookAndReviewModels:
         with pytest.raises(ValidationError):
             duplicate.full_clean()
 
+    def test_existing_review_can_be_validated_after_update(self):
+        review = Review.objects.create(
+            text="First review.",
+            rating=4,
+            book=self.book,
+            user=self.user,
+        )
+        review.text = "Updated review."
+        review.rating = 5
+
+        review.full_clean()
+
+        assert review.text == "Updated review."
+        assert review.rating == 5
+
     def test_duplicate_review_fails_database_constraint(self):
         Review.objects.create(
             text="First review.",
