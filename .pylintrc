@@ -1,5 +1,6 @@
 [MASTER]
 load-plugins=pylint_django
+ignore-paths=^.*reviews[\\/]migrations[\\/].*$
 
 [DJANGO]
 django-settings-module=config.settings

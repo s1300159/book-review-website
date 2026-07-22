@@ -155,3 +155,24 @@ same user and book before saving when validation is run.
 The rating field uses `MinValueValidator(1)` and `MaxValueValidator(5)`.
 A named database `CheckConstraint` also guarantees that stored ratings are
 between 1 and 5.
+
+## Exercise 6 view and URL contract
+
+Exercise 6 provides a minimal, read-only HTTP layer before templates and forms
+are introduced. All application URLs use the `reviews` namespace, all six
+views are function-based and accept GET only, and unsupported methods return
+HTTP 405 without changing Book or Review data.
+
+| Callable | URL and name | URL/query input | Processing | Response |
+| --- | --- | --- | --- | --- |
+| `home(request)` | `GET /` (`reviews:home`) | No URL or query argument. | Builds a minimal site introduction and reverses the named book-list and search URLs for navigation. | Minimal HTML `HttpResponse`, HTTP 200. |
+| `book_list(request)` | `GET /books/` (`reviews:book_list`) | No URL or query argument. | Reads all registered Book rows and displays their titles. Rating sorting, filtering, and pagination are deferred. | HTTP 200 with linked book titles, or an explicit no-books message. |
+| `book_detail(request, book_id)` | `GET /books/<int:book_id>/` (`reviews:book_detail`) | Required integer URL argument `book_id`; no query argument. | Uses the ID to fetch a Book, derives its average rating through the existing model property, and reads only its related Reviews with users, newest first. | HTTP 200 with title, description, average rating, and review authors, ratings, and text. A missing Book returns HTTP 404. |
+| `book_search(request)` | `GET /books/search/` (`reviews:book_search`) | Optional query argument `q`; no URL argument. | Trims `q` and uses case-insensitive partial-title matching for a non-empty value. A missing, empty, or whitespace-only value does not execute an all-books empty-string match. | HTTP 200 with the query and linked matches, a no-match message, or a prompt to enter a title. |
+| `review_create(request, book_id)` | `GET /books/<int:book_id>/review/` (`reviews:review_create`) | Required integer URL argument `book_id`; no query argument. | Confirms that the Book exists and displays a placeholder. It does not build a form, require login, validate input, or create or update a Review. | HTTP 200 placeholder naming the Book. A missing Book returns HTTP 404. |
+| `book_list_redirect(request)` | `GET /books-redirect/` (`reviews:book_list_redirect`) | No URL or query argument. | Resolves the named `reviews:book_list` route rather than hard-coding its destination. | `HttpResponseRedirect`, HTTP 302, to `/books/`. |
+
+Dynamic Book, Review, username, and search-query values are escaped before
+they are included in the minimal HTML. Exercise 7 may replace this output with
+templates while preserving the URL contract. Exercise 8 or later may add the
+review form, authentication requirement, validation, and persistence.
