@@ -9,13 +9,18 @@ Main directories:
 
 ## Current State
 - The initial Django project and `reviews` app setup are complete.
-- `reviews/models.py` and `reviews/views.py` are still close to their generated state.
-- The `Book` and `Review` models have not been implemented.
-- Book listing, search, details, review submission, average ratings, sorting, filtering, and pagination have not been implemented.
-- Except for the Django admin, URLs for the main features have not been implemented.
+- Exercise 5 implemented the `Book` and `Review` models, their migration,
+  validation and database constraints, derived average rating, admin
+  registration, tests, and data-model specification.
+- Exercise 6 implements minimal GET-only function views and named URLs for
+  home, book listing, book detail with reviews and average rating, partial-title
+  search, a read-only review placeholder, and a book-list redirect.
+- Review form processing and persistence, rating sorting and filtering, and
+  pagination have not been implemented.
 - `forms.py` and template directories do not exist yet.
 - Development tools including pytest, Black, and Pylint are configured.
-- OpenSpec has been initialized, but no formal specification has been written yet.
+- OpenSpec has accepted `book-review-data-model` and `basic-book-views`
+  specifications.
 
 ## Target Features
 - List registered books.
@@ -108,7 +113,7 @@ Stop and report instead of proceeding when:
 
 ## Documentation and OpenSpec
 - If specifications are added under `openspec/specs/`, treat them as the formal source of truth.
-- `openspec/specs/` is currently empty.
+- `openspec/specs/book-review-data-model/spec.md` is the accepted formal data-model specification.
 - `openspec/config.yaml` currently contains only its initial configuration.
 - When no OpenSpec document exists, check the task description, `README.md`, and implementation code.
 - Keep code and specifications consistent. Report conflicts and propose a correction.
