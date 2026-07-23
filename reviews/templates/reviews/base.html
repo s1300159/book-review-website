@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Book Review Website{% endblock %}</title>
+  </head>
+  <body>
+    <header>
+      <h1>
+        <a href="{% url 'reviews:home' %}">Book Review Website</a>
+      </h1>
+      <nav aria-label="Primary navigation">
+        <ul>
+          <li><a href="{% url 'reviews:home' %}">Home</a></li>
+          <li><a href="{% url 'reviews:book_list' %}">Books</a></li>
+          <li><a href="{% url 'reviews:book_search' %}">Search</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      <p>Book Review Website</p>
+    </footer>
+  </body>
+</html>

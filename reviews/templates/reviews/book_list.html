@@ -1,0 +1,26 @@
+{% extends "reviews/base.html" %}
+
+{% block title %}Books | Book Review Website{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="books-heading">
+    <h2 id="books-heading">Books</h2>
+    {% if books %}
+      <ul>
+        {% for book in books %}
+          <li>
+            <article>
+              <h3>
+                <a href="{% url 'reviews:book_detail' book_id=book.pk %}">
+                  {{ book.title }}
+                </a>
+              </h3>
+            </article>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No books are available.</p>
+    {% endif %}
+  </section>
+{% endblock %}

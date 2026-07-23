@@ -173,6 +173,33 @@ HTTP 405 without changing Book or Review data.
 | `book_list_redirect(request)` | `GET /books-redirect/` (`reviews:book_list_redirect`) | No URL or query argument. | Resolves the named `reviews:book_list` route rather than hard-coding its destination. | `HttpResponseRedirect`, HTTP 302, to `/books/`. |
 
 Dynamic Book, Review, username, and search-query values are escaped before
-they are included in the minimal HTML. Exercise 7 may replace this output with
-templates while preserving the URL contract. Exercise 8 or later may add the
-review form, authentication requirement, validation, and persistence.
+they are included in HTML. Exercise 7 replaces the direct HTML construction for
+the book-list and book-detail responses with Django templates while preserving
+this URL contract. Exercise 8 or later may add the review form, authentication
+requirement, validation, and persistence.
+
+## Exercise 7 templates and session state
+
+`reviews/base.html` defines the shared document structure for the
+template-rendered book pages: a header, navigation using the existing named
+URLs, a main-content block, and a footer. `reviews/book_list.html` and
+`reviews/book_detail.html` extend that base. Presentation choices and empty
+states live in the templates, while Book lookup, Review ordering, and average
+rating calculation remain in the views and models. Django automatic escaping
+remains enabled.
+
+The system keeps different kinds of state separate:
+
+| State type | Information and lifetime |
+| --- | --- |
+| Persistent domain state | Book, Review, and configured User records remain in the database as the source of truth. |
+| Temporary session state | `recently_viewed_book_ids` contains at most five unique integer Book IDs for one browser session, ordered most recent first. |
+| Request state | Search `q`, and future `sort`, `min_rating`, and `page` controls, remain GET parameters and are not copied into the session. |
+| Response context | The current books, selected book, ordered reviews, and derived average rating exist only while rendering one response. |
+
+A successful existing-Book detail request updates the recent-book session
+history. Reopening a Book moves its ID to the front, a sixth distinct Book
+evicts the oldest ID, and a missing Book does not change the session. Missing
+or malformed existing history is normalized safely. The session does not store
+Book content, Review text or ratings, User or authentication data, or GET
+control values, and Exercise 7 does not display the recent history.
