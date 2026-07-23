@@ -15,9 +15,13 @@ Main directories:
 - Exercise 6 implements minimal GET-only function views and named URLs for
   home, book listing, book detail with reviews and average rating, partial-title
   search, a read-only review placeholder, and a book-list redirect.
+- Exercise 7 renders the book-list and book-detail views through app-namespaced
+  templates that inherit a shared base layout, and records up to five unique
+  recently viewed Book IDs in each browser session.
 - Review form processing and persistence, rating sorting and filtering, and
   pagination have not been implemented.
-- `forms.py` and template directories do not exist yet.
+- `forms.py` does not exist; the current templates cover only the shared base,
+  book list, and book detail.
 - Development tools including pytest, Black, and Pylint are configured.
 - OpenSpec has accepted `book-review-data-model` and `basic-book-views`
   specifications.
