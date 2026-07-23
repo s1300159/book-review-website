@@ -1,0 +1,46 @@
+{% extends "reviews/base.html" %}
+
+{% block title %}{{ book.title }} | Book Review Website{% endblock %}
+
+{% block content %}
+  <article aria-labelledby="book-heading">
+    <header>
+      <h2 id="book-heading">{{ book.title }}</h2>
+    </header>
+
+    {% if book.description %}
+      <p>{{ book.description }}</p>
+    {% else %}
+      <p>No description available.</p>
+    {% endif %}
+
+    <p>Average rating: {% if average_rating is None %}No ratings yet.{% else %}{{ average_rating }}{% endif %}</p>
+
+    <section aria-labelledby="reviews-heading">
+      <h3 id="reviews-heading">Reviews</h3>
+      {% if reviews %}
+        <ol>
+          {% for review in reviews %}
+            <li>
+              <article>
+                <header>
+                  <strong>{{ review.user.username }}</strong>
+                </header>
+                <p>Rating: {{ review.rating }} / 5</p>
+                <p>{{ review.text }}</p>
+              </article>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p>No reviews yet.</p>
+      {% endif %}
+    </section>
+
+    <p>
+      <a href="{% url 'reviews:review_create' book_id=book.pk %}">
+        Write a review
+      </a>
+    </p>
+  </article>
+{% endblock %}

@@ -1,10 +1,12 @@
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
 from django.views.decorators.http import require_GET
 
 from reviews.models import Book
+
+RECENTLY_VIEWED_BOOK_IDS_SESSION_KEY = "recently_viewed_book_ids"
 
 
 def _page(title, body):
@@ -27,6 +29,27 @@ def _book_links(books):
     )
 
 
+def _record_recently_viewed_book(request, book_id):
+    stored_ids = request.session.get(RECENTLY_VIEWED_BOOK_IDS_SESSION_KEY, [])
+    if not isinstance(stored_ids, list):
+        stored_ids = []
+
+    normalized_ids = []
+    for stored_id in stored_ids:
+        if (
+            isinstance(stored_id, int)
+            and not isinstance(stored_id, bool)
+            and stored_id != book_id
+            and stored_id not in normalized_ids
+        ):
+            normalized_ids.append(stored_id)
+
+    request.session[RECENTLY_VIEWED_BOOK_IDS_SESSION_KEY] = [
+        book_id,
+        *normalized_ids,
+    ][:5]
+
+
 @require_GET
 def home(request):
     del request
@@ -43,49 +66,27 @@ def home(request):
 
 @require_GET
 def book_list(request):
-    del request
-    book_links = _book_links(Book.objects.all())
-    if book_links:
-        content = format_html("<ul>{}</ul>", book_links)
-    else:
-        content = format_html("<p>{}</p>", "No books are available.")
-
-    body = format_html("<h1>{}</h1>{}", "Books", content)
-    return _page("Books", body)
+    return render(
+        request,
+        "reviews/book_list.html",
+        {"books": Book.objects.all()},
+    )
 
 
 @require_GET
 def book_detail(request, book_id):
-    del request
     book = get_object_or_404(Book, pk=book_id)
+    _record_recently_viewed_book(request, book.pk)
     reviews = book.reviews.select_related("user").order_by("-created_at", "-pk")
-    review_items = format_html_join(
-        "",
-        "<li><strong>{}</strong>: {} / 5 &mdash; {}</li>",
-        ((review.user.username, review.rating, review.text) for review in reviews),
+    return render(
+        request,
+        "reviews/book_detail.html",
+        {
+            "book": book,
+            "reviews": reviews,
+            "average_rating": book.average_rating,
+        },
     )
-    if review_items:
-        review_content = format_html("<ul>{}</ul>", review_items)
-    else:
-        review_content = format_html("<p>{}</p>", "No reviews yet.")
-
-    description = book.description or "No description available."
-    average_rating = book.average_rating
-    average_display = (
-        "No ratings yet." if average_rating is None else str(average_rating)
-    )
-    body = format_html(
-        "<h1>{}</h1><p>{}</p><p>Average rating: {}</p>"
-        '<h2>{}</h2>{}<p><a href="{}">{}</a></p>',
-        book.title,
-        description,
-        average_display,
-        "Reviews",
-        review_content,
-        reverse("reviews:review_create", args=[book.pk]),
-        "Write a review",
-    )
-    return _page(book.title, body)
 
 
 @require_GET
