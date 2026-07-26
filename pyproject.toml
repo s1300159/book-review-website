@@ -8,6 +8,8 @@ dependencies = [
     "django>=5.2.15",
     "django-htmx>=1.28.0",
     "pillow>=12.3.0",
+    "waitress>=3.0.2",
+    "whitenoise>=6.12.0",
 ]
 
 [dependency-groups]

@@ -10,7 +10,48 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
+
+TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
+FALSE_VALUES = frozenset({"0", "false", "no", "off"})
+
+
+def _environment_bool(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    normalized_value = value.strip().lower()
+    if normalized_value in TRUE_VALUES:
+        return True
+    if normalized_value in FALSE_VALUES:
+        return False
+    raise ImproperlyConfigured(
+        f"{name} must be one of: " "1, true, yes, on, 0, false, no, or off."
+    )
+
+
+def _environment_non_negative_int(name, default):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        parsed_value = int(value)
+    except ValueError as error:
+        raise ImproperlyConfigured(f"{name} must be a non-negative integer.") from error
+    if parsed_value < 0:
+        raise ImproperlyConfigured(f"{name} must be a non-negative integer.")
+    return parsed_value
+
+
+def _environment_list(name):
+    return [
+        item.strip() for item in os.environ.get(name, "").split(",") if item.strip()
+    ]
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +60,41 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-9=5)28*hl7)l4#5co2nq(ty_jz(0khw41a&_7c6#3ertvyo^%9"
+# Development defaults keep existing local workflows simple. Production fails
+# closed unless its secret and host allowlist are provided explicitly.
+DEBUG = _environment_bool("DJANGO_DEBUG", True)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY.strip():
+    if DEBUG:
+        SECRET_KEY = "django-insecure-development-only-not-for-production"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY is required when DJANGO_DEBUG is false."
+        )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+ALLOWED_HOSTS = _environment_list("DJANGO_ALLOWED_HOSTS")
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "DJANGO_ALLOWED_HOSTS is required when DJANGO_DEBUG is false."
+    )
 
-ALLOWED_HOSTS = []
+SERVE_MEDIA = _environment_bool("DJANGO_SERVE_MEDIA", DEBUG)
+SECURE_SSL_REDIRECT = _environment_bool(
+    "DJANGO_SECURE_SSL_REDIRECT",
+    False,
+)
+SESSION_COOKIE_SECURE = _environment_bool(
+    "DJANGO_SESSION_COOKIE_SECURE",
+    False,
+)
+CSRF_COOKIE_SECURE = _environment_bool(
+    "DJANGO_CSRF_COOKIE_SECURE",
+    False,
+)
+SECURE_HSTS_SECONDS = _environment_non_negative_int(
+    "DJANGO_SECURE_HSTS_SECONDS",
+    0,
+)
 
 
 # Application definition
@@ -51,6 +120,9 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+if not DEBUG:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "config.urls"
 
@@ -121,6 +193,23 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
