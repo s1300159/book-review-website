@@ -12,7 +12,12 @@
 
     <form class="form-panel search-form"
           method="get"
-          action="{% url 'reviews:book_search' %}">
+          action="{% url 'reviews:book_search' %}"
+          hx-get="{% url 'reviews:book_search' %}"
+          hx-target="#book-results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+          hx-trigger="input changed delay:300ms from:#id_q, change from:#id_min_rating, submit">
       {% if form.non_field_errors %}
         <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
       {% endif %}
@@ -30,52 +35,8 @@
       </div>
     </form>
 
-    <div class="search-summary" aria-live="polite">
-      {% if query %}
-        <p>Search query: {{ query }}</p>
-      {% endif %}
-      {% if min_rating is not None %}
-        <p>Minimum rating: {{ min_rating }}</p>
-      {% endif %}
+    <div id="book-results" aria-live="polite">
+      {% include "reviews/partials/book_results.html" %}
     </div>
-
-    {% if books %}
-      <ul class="book-grid">
-        {% for book in books %}
-          <li>
-            <article class="book-card">
-              {% if book.cover_image %}
-                <img class="book-cover"
-                     src="{{ book.cover_image.url }}"
-                     alt="Cover of {{ book.title }}">
-              {% else %}
-                <div class="cover-placeholder" aria-hidden="true">No cover</div>
-              {% endif %}
-              <div class="card-content">
-                <h2>{{ book.title }}</h2>
-                {% with rating=book.average_rating %}
-                  <p class="rating">Average rating: {% if rating is None %}No ratings yet{% else %}{{ rating|floatformat:1 }} / 5{% endif %}</p>
-                {% endwith %}
-                <p>
-                  {% if book.description %}
-                    {{ book.description|truncatewords:32 }}
-                  {% else %}
-                    No description available.
-                  {% endif %}
-                </p>
-                <a class="text-link"
-                   href="{% url 'reviews:book_detail' book_id=book.pk %}">
-                  View details for {{ book.title }}
-                </a>
-              </div>
-            </article>
-          </li>
-        {% endfor %}
-      </ul>
-    {% elif show_no_results %}
-      <p class="empty-state">No books matched. Try changing your search conditions.</p>
-    {% elif not form.errors %}
-      <p class="empty-state">No books are available.</p>
-    {% endif %}
   </section>
 {% endblock %}
