@@ -6,14 +6,23 @@ This project is a web application for browsing books, searching for books by tit
 
 The project is being developed for the Web Engineering course at the University of Aizu.
 
-## Planned Features
+## Implemented Features
 
 - Browse a list of books
-- Search books by title
+- Search books by partial title and optional minimum average rating
 - View book details, reviews, and average ratings
-- Register and log in as a user
-- Post one review for each book
-- Sort and filter books by rating
+- Log in with Django's standard authentication interface
+- Post one review for each book as an authenticated user
+- Edit a review as its author
+- Keep up to five recently viewed Book IDs in each browser session
+
+## Planned Features
+
+- User registration
+- Sort books by rating
+- Paginate book listings
+- Review deletion, if required by a later exercise
+- HTMX interactions, if a later exercise benefits from them
 
 ## Development Environment
 

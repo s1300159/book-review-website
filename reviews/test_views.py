@@ -32,6 +32,12 @@ def _rendered_template_names(response):
             "/books/7/review/",
         ),
         (
+            "review_edit",
+            views.review_edit,
+            {"review_id": 7},
+            "/reviews/7/edit/",
+        ),
+        (
             "book_list_redirect",
             views.book_list_redirect,
             None,
@@ -378,35 +384,14 @@ def test_book_search_displays_no_match_state(client):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("query", [None, "", "   "])
-def test_book_search_empty_query_does_not_list_all_books(client, query):
+def test_book_search_empty_query_lists_all_books(client, query):
     Book.objects.create(title="Dune")
     parameters = {} if query is None else {"q": query}
 
     response = client.get(reverse("reviews:book_search"), parameters)
 
     assert response.status_code == 200
-    assert b"Enter a book title to search." in response.content
-    assert b"Dune" not in response.content
-
-
-@pytest.mark.django_db
-def test_review_create_displays_placeholder_without_creating_review(client):
-    book = Book.objects.create(title="Dune")
-
-    response = client.get(reverse("reviews:review_create", args=[book.pk]))
-
-    assert response.status_code == 200
-    assert b"Review Dune" in response.content
-    assert b"Review submission is not available yet." in response.content
-    assert Review.objects.count() == 0
-
-
-@pytest.mark.django_db
-def test_review_create_returns_404_for_missing_book(client):
-    response = client.get(reverse("reviews:review_create", args=[999]))
-
-    assert response.status_code == 404
-    assert Review.objects.count() == 0
+    assert b"Dune" in response.content
 
 
 def test_book_list_redirect_uses_named_book_list_url(client):
@@ -424,7 +409,6 @@ def test_book_list_redirect_uses_named_book_list_url(client):
         ("book_list", False),
         ("book_search", False),
         ("book_detail", True),
-        ("review_create", True),
         ("book_list_redirect", False),
     ],
 )

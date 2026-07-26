@@ -15,11 +15,25 @@
           <li><a href="{% url 'reviews:home' %}">Home</a></li>
           <li><a href="{% url 'reviews:book_list' %}">Books</a></li>
           <li><a href="{% url 'reviews:book_search' %}">Search</a></li>
+          {% if not user.is_authenticated %}
+            <li><a href="{% url 'login' %}">Log in</a></li>
+          {% endif %}
         </ul>
       </nav>
     </header>
 
     <main>
+      {% if messages %}
+        <section aria-label="Messages">
+          <ul>
+            {% for message in messages %}
+              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+                {{ message }}
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 
