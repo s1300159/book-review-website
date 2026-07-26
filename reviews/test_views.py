@@ -148,10 +148,10 @@ def test_book_pages_use_shared_semantic_layout_and_named_navigation(
     assert response.status_code == 200
     assert expected_template in template_names
     assert "reviews/base.html" in template_names
-    assert b"<header>" in response.content
+    assert b"<header" in response.content
     assert b'<nav aria-label="Primary navigation">' in response.content
-    assert b"<main>" in response.content
-    assert b"<footer>" in response.content
+    assert b"<main" in response.content
+    assert b"<footer" in response.content
     for navigation_url in (
         reverse("reviews:home"),
         reverse("reviews:book_list"),

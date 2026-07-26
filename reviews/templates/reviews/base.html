@@ -1,33 +1,59 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Book Review Website{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'reviews/style.css' %}">
   </head>
   <body>
-    <header>
-      <h1>
-        <a href="{% url 'reviews:home' %}">Book Review Website</a>
-      </h1>
-      <nav aria-label="Primary navigation">
-        <ul>
-          <li><a href="{% url 'reviews:home' %}">Home</a></li>
-          <li><a href="{% url 'reviews:book_list' %}">Books</a></li>
-          <li><a href="{% url 'reviews:book_search' %}">Search</a></li>
-          {% if not user.is_authenticated %}
-            <li><a href="{% url 'login' %}">Log in</a></li>
-          {% endif %}
-        </ul>
-      </nav>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="page-container header-layout">
+        <p class="site-title">
+          <a href="{% url 'reviews:home' %}">Book Review Website</a>
+        </p>
+        <nav aria-label="Primary navigation">
+          <ul class="nav-list">
+            <li>
+              <a href="{% url 'reviews:home' %}"
+                 {% if request.resolver_match.url_name == "home" %}aria-current="page"{% endif %}>
+                Home
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'reviews:book_list' %}"
+                 {% if request.resolver_match.url_name == "book_list" or request.resolver_match.url_name == "book_detail" %}aria-current="page"{% endif %}>
+                Books
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'reviews:book_search' %}"
+                 {% if request.resolver_match.url_name == "book_search" %}aria-current="page"{% endif %}>
+                Search
+              </a>
+            </li>
+            {% if not user.is_authenticated %}
+              <li>
+                <a href="{% url 'login' %}"
+                   {% if request.resolver_match.url_name == "login" %}aria-current="page"{% endif %}>
+                  Log in
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
     </header>
 
-    <main>
+    <main id="main-content" class="page-container main-content" tabindex="-1">
       {% if messages %}
-        <section aria-label="Messages">
-          <ul>
+        <section class="messages" aria-label="Messages" aria-live="polite">
+          <ul class="message-list">
             {% for message in messages %}
-              <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>
+              <li class="message{% if message.tags %} {{ message.tags }}{% endif %}">
                 {{ message }}
               </li>
             {% endfor %}
@@ -37,8 +63,10 @@
       {% block content %}{% endblock %}
     </main>
 
-    <footer>
-      <p>Book Review Website</p>
+    <footer class="site-footer">
+      <div class="page-container">
+        <p>Book Review Website</p>
+      </div>
     </footer>
   </body>
 </html>

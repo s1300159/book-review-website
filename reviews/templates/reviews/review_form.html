@@ -3,23 +3,33 @@
 {% block title %}{{ heading }} | Book Review Website{% endblock %}
 
 {% block content %}
-  <section aria-labelledby="review-form-heading">
-    <h2 id="review-form-heading">{{ heading }}</h2>
-    <p>Book: {{ book.title }}</p>
+  <section class="narrow-section" aria-labelledby="review-form-heading">
+    <header class="page-heading">
+      <p class="eyebrow">Book: {{ book.title }}</p>
+      <h1 id="review-form-heading">{{ heading }}</h1>
+    </header>
 
-    <form method="post">
+    <form class="form-panel" method="post">
       {% csrf_token %}
-      {{ form.non_field_errors }}
+      {% if form.non_field_errors %}
+        <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
       {% for field in form %}
-        <p>
+        <div class="form-field">
           {{ field.label_tag }}
           {{ field }}
           {% if field.errors %}
-            {{ field.errors }}
+            <div class="field-errors">{{ field.errors }}</div>
           {% endif %}
-        </p>
+        </div>
       {% endfor %}
-      <button type="submit">{{ submit_label }}</button>
+      <div class="action-list">
+        <button class="button" type="submit">{{ submit_label }}</button>
+        <a class="button button-secondary"
+           href="{% url 'reviews:book_detail' book_id=book.pk %}">
+          Cancel
+        </a>
+      </div>
     </form>
   </section>
 {% endblock %}

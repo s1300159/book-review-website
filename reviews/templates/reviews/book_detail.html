@@ -3,42 +3,50 @@
 {% block title %}{{ book.title }} | Book Review Website{% endblock %}
 
 {% block content %}
-  <article aria-labelledby="book-heading">
-    <header>
-      <h2 id="book-heading">{{ book.title }}</h2>
+  <article class="book-detail" aria-labelledby="book-heading">
+    <header class="page-heading">
+      <p class="eyebrow">Book details</p>
+      <h1 id="book-heading">{{ book.title }}</h1>
     </header>
 
-    {% if book.description %}
-      <p>{{ book.description }}</p>
-    {% else %}
-      <p>No description available.</p>
-    {% endif %}
+    <section class="book-summary" aria-label="Book information">
+      {% if book.cover_image %}
+        <img class="detail-cover"
+             src="{{ book.cover_image.url }}"
+             alt="Cover of {{ book.title }}">
+      {% else %}
+        <div class="detail-cover cover-placeholder" aria-hidden="true">No cover</div>
+      {% endif %}
+      <div>
+        {% if book.description %}
+          <p>{{ book.description }}</p>
+        {% else %}
+          <p>No description available.</p>
+        {% endif %}
+        <p class="rating">Average rating: {% if average_rating is None %}No ratings yet.{% else %}{{ average_rating|floatformat:1 }} / 5{% endif %}</p>
+        <a class="button" href="{{ review_action_url }}">{{ review_action_label }}</a>
+      </div>
+    </section>
 
-    <p>Average rating: {% if average_rating is None %}No ratings yet.{% else %}{{ average_rating }}{% endif %}</p>
-
-    <section aria-labelledby="reviews-heading">
-      <h3 id="reviews-heading">Reviews</h3>
+    <section class="reviews-section" aria-labelledby="reviews-heading">
+      <h2 id="reviews-heading">Reviews</h2>
       {% if reviews %}
-        <ol>
+        <ol class="review-list">
           {% for review in reviews %}
             <li>
-              <article>
-                <header>
-                  <strong>{{ review.user.username }}</strong>
+              <article class="review-card">
+                <header class="review-heading">
+                  <h3>{{ review.user.username }}</h3>
+                  <p class="rating">Rating: {{ review.rating }} / 5</p>
                 </header>
-                <p>Rating: {{ review.rating }} / 5</p>
                 <p>{{ review.text }}</p>
               </article>
             </li>
           {% endfor %}
         </ol>
       {% else %}
-        <p>No reviews yet.</p>
+        <p class="empty-state">No reviews yet.</p>
       {% endif %}
     </section>
-
-    <p>
-      <a href="{{ review_action_url }}">{{ review_action_label }}</a>
-    </p>
   </article>
 {% endblock %}
