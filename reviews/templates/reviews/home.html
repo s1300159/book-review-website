@@ -1,0 +1,20 @@
+{% extends "reviews/base.html" %}
+
+{% block title %}Home | Book Review Website{% endblock %}
+
+{% block content %}
+  <section class="hero" aria-labelledby="home-heading">
+    <p class="eyebrow">Read, rate, and share</p>
+    <h1 id="home-heading">Find your next book</h1>
+    <p>
+      Browse registered books, discover reviews from other readers, and share
+      your own rating after logging in.
+    </p>
+    <div class="action-list">
+      <a class="button" href="{% url 'reviews:book_list' %}">Browse books</a>
+      <a class="button button-secondary" href="{% url 'reviews:book_search' %}">
+        Search books
+      </a>
+    </div>
+  </section>
+{% endblock %}

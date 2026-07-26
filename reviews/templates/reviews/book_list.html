@@ -3,24 +3,48 @@
 {% block title %}Books | Book Review Website{% endblock %}
 
 {% block content %}
-  <section aria-labelledby="books-heading">
-    <h2 id="books-heading">Books</h2>
+  <section class="page-section" aria-labelledby="books-heading">
+    <header class="page-heading">
+      <p class="eyebrow">Library</p>
+      <h1 id="books-heading">Books</h1>
+      <p>Browse every registered book and open its details to read reviews.</p>
+    </header>
+
     {% if books %}
-      <ul>
+      <ul class="book-grid">
         {% for book in books %}
           <li>
-            <article>
-              <h3>
-                <a href="{% url 'reviews:book_detail' book_id=book.pk %}">
-                  {{ book.title }}
+            <article class="book-card">
+              {% if book.cover_image %}
+                <img class="book-cover"
+                     src="{{ book.cover_image.url }}"
+                     alt="Cover of {{ book.title }}">
+              {% else %}
+                <div class="cover-placeholder" aria-hidden="true">No cover</div>
+              {% endif %}
+              <div class="card-content">
+                <h2>{{ book.title }}</h2>
+                {% with rating=book.average_rating %}
+                  <p class="rating">Average rating: {% if rating is None %}No ratings yet{% else %}{{ rating|floatformat:1 }} / 5{% endif %}</p>
+                {% endwith %}
+                <p>
+                  {% if book.description %}
+                    {{ book.description|truncatewords:32 }}
+                  {% else %}
+                    No description available.
+                  {% endif %}
+                </p>
+                <a class="text-link"
+                   href="{% url 'reviews:book_detail' book_id=book.pk %}">
+                  View details for {{ book.title }}
                 </a>
-              </h3>
+              </div>
             </article>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>No books are available.</p>
+      <p class="empty-state">No books are available.</p>
     {% endif %}
   </section>
 {% endblock %}

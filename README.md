@@ -15,6 +15,7 @@ The project is being developed for the Web Engineering course at the University 
 - Post one review for each book as an authenticated user
 - Edit a review as its author
 - Keep up to five recently viewed Book IDs in each browser session
+- Use a shared semantic, responsive, and keyboard-accessible interface
 
 ## Planned Features
 

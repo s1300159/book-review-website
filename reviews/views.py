@@ -3,25 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError, transaction
 from django.db.models import Avg
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils.html import format_html
 from django.views.decorators.http import require_GET, require_http_methods
 
 from reviews.forms import BookSearchForm, DUPLICATE_REVIEW_ERROR, ReviewForm
 from reviews.models import Book, Review
 
 RECENTLY_VIEWED_BOOK_IDS_SESSION_KEY = "recently_viewed_book_ids"
-
-
-def _page(title, body):
-    document = format_html(
-        "<!doctype html><html><head><title>{}</title></head><body>{}</body></html>",
-        title,
-        body,
-    )
-    return HttpResponse(document)
 
 
 def _record_recently_viewed_book(request, book_id):
@@ -56,16 +45,7 @@ def _save_review_form(form):
 
 @require_GET
 def home(request):
-    del request
-    body = format_html(
-        '<h1>{}</h1><nav><a href="{}">{}</a> <a href="{}">{}</a></nav>',
-        "Book Review Website",
-        reverse("reviews:book_list"),
-        "Books",
-        reverse("reviews:book_search"),
-        "Search",
-    )
-    return _page("Book Review Website", body)
+    return render(request, "reviews/home.html")
 
 
 @require_GET
