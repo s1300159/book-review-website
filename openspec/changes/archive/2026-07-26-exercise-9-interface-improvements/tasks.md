@@ -21,5 +21,5 @@
 
 - [x] 4.1 Run Django check, pytest, Black, Pylint, migration check, strict OpenSpec validation, and `git diff --check`.
 - [x] 4.2 Inspect representative pages at desktop, tablet, and mobile widths, or document the equivalent HTML/CSS and Django-client review.
-- [ ] 4.3 Commit the implementation, archive the OpenSpec change, validate the archive, and commit the archive.
+- [x] 4.3 Commit the implementation, archive the OpenSpec change, validate the archive, and commit the archive.
 - [ ] 4.4 Push normally, create and verify the Pull Request, merge only when ready, synchronize main, and clean up the local feature branch.
