@@ -16,9 +16,10 @@ Users can open a book detail page to see the book information, reviews, and aver
 
 Registered users can write one review for each book.
 
-Users can sort books by star rating and filter books by a minimum rating.
+Users can filter books by a minimum average rating. Rating-based sorting is a
+later feature.
 
-Users can move between pages in the book list using pagination.
+Pagination remains a later feature.
 
 ## Main data entities
 
@@ -69,10 +70,12 @@ Each review belongs to one user and one book. A user should not be able to write
 4. The system searches the database and displays matching books.
 5. The user clicks one book from the list.
 6. The book detail page is displayed. It shows the book information, average rating, and reviews.
-7. If the user is registered and logged in, the user can write a review and choose a star rating.
+7. If the user is logged in, the user can write one review for the book and
+   choose a star rating.
 8. When the review is submitted, the system checks whether the same user has already reviewed the book.
 9. If the review is valid, it is saved in the database.
 10. The book detail page is updated, and the new average rating is shown.
+11. The review author can reopen the Review form and edit its text and rating.
 
 ## Architecture sketch
 
@@ -158,10 +161,10 @@ between 1 and 5.
 
 ## Exercise 6 view and URL contract
 
-Exercise 6 provides a minimal, read-only HTTP layer before templates and forms
-are introduced. All application URLs use the `reviews` namespace, all six
-views are function-based and accept GET only, and unsupported methods return
-HTTP 405 without changing Book or Review data.
+Exercise 6 originally provided a minimal, read-only HTTP layer before
+templates and forms were introduced. The table below records that historical
+baseline. Exercise 8 replaces the Review placeholder and search behavior as
+described in the current contract later in this document.
 
 | Callable | URL and name | URL/query input | Processing | Response |
 | --- | --- | --- | --- | --- |
@@ -173,10 +176,10 @@ HTTP 405 without changing Book or Review data.
 | `book_list_redirect(request)` | `GET /books-redirect/` (`reviews:book_list_redirect`) | No URL or query argument. | Resolves the named `reviews:book_list` route rather than hard-coding its destination. | `HttpResponseRedirect`, HTTP 302, to `/books/`. |
 
 Dynamic Book, Review, username, and search-query values are escaped before
-they are included in HTML. Exercise 7 replaces the direct HTML construction for
-the book-list and book-detail responses with Django templates while preserving
-this URL contract. Exercise 8 or later may add the review form, authentication
-requirement, validation, and persistence.
+they are included in HTML. Exercise 7 replaced the direct HTML construction
+for the book-list and book-detail responses with Django templates. Exercise 8
+retains the stable named routes while adding validated forms, authentication,
+Review persistence, and a new edit route.
 
 ## Exercise 7 templates and session state
 
@@ -194,7 +197,7 @@ The system keeps different kinds of state separate:
 | --- | --- |
 | Persistent domain state | Book, Review, and configured User records remain in the database as the source of truth. |
 | Temporary session state | `recently_viewed_book_ids` contains at most five unique integer Book IDs for one browser session, ordered most recent first. |
-| Request state | Search `q`, and future `sort`, `min_rating`, and `page` controls, remain GET parameters and are not copied into the session. |
+| Request state | Search `q` and `min_rating`, and future `sort` and `page` controls, remain GET parameters and are not copied into the session. |
 | Response context | The current books, selected book, ordered reviews, and derived average rating exist only while rendering one response. |
 
 A successful existing-Book detail request updates the recent-book session
@@ -203,3 +206,75 @@ evicts the oldest ID, and a missing Book does not change the session. Missing
 or malformed existing history is normalized safely. The session does not store
 Book content, Review text or ratings, User or authentication data, or GET
 control values, and Exercise 7 does not display the recent history.
+
+## Exercise 8 validated forms and user input
+
+Exercise 8 adds Django forms for search and Review input without changing the
+Book or Review models or creating a migration.
+
+### Search form
+
+`BookSearchForm` is a GET form with two optional fields:
+
+* `q`: trimmed text used with case-insensitive `title__icontains` matching
+* `min_rating`: a choice from 1 through 5, converted to an integer
+
+With no controls, search displays every registered Book. `q` alone filters by
+partial title, `min_rating` alone filters by the average rating of related
+Reviews, and both controls combine the filters. A minimum-rating filter
+excludes Books without Reviews. Valid criteria with no result display a
+condition-change message; invalid controls display field errors. Search values
+remain in the current URL and are never copied into the session.
+
+### Review form and persistence
+
+`ReviewForm` is a `ModelForm` exposing exactly `text` and `rating`. Rating is a
+required choice from 1 through 5, and Review text is trimmed and cannot be
+empty. The view supplies User and Book relationships from trusted server-side
+context, so submitted `user` or `book` values cannot change ownership.
+
+The form checks for an existing Review from the same User for the same Book
+and reports a duplicate as a non-field error. Editing excludes the current
+Review from that check. The existing model validation, rating constraint, and
+`unique_review_per_user_book` database constraint remain final defenses. A
+possible database `IntegrityError` is caught outside an atomic save block and
+redisplayed as a safe non-field error.
+
+### Current URL and method contract
+
+| Callable | URL and name | Methods | Authentication and behavior |
+| --- | --- | --- | --- |
+| `home(request)` | `/` (`reviews:home`) | GET | Public, read-only home response. |
+| `book_list(request)` | `/books/` (`reviews:book_list`) | GET | Public, read-only list of all Books. Sorting and pagination remain deferred. |
+| `book_search(request)` | `/books/search/` (`reviews:book_search`) | GET | Public validated `BookSearchForm`; supports `q` and `min_rating`. |
+| `book_detail(request, book_id)` | `/books/<book_id>/` (`reviews:book_detail`) | GET | Public detail page; preserves average rating, newest-first Reviews, escaping, and recent-Book session recording. |
+| `review_create(request, book_id)` | `/books/<book_id>/review/` (`reviews:review_create`) | GET, POST | Login required. GET displays the form; a valid POST creates one Review and redirects to the named Book detail URL with a success message. |
+| `review_edit(request, review_id)` | `/reviews/<review_id>/edit/` (`reviews:review_edit`) | GET, POST | Login and exact authorship required. A non-author receives HTTP 403. A valid POST updates only text and rating and redirects with a success message. |
+| `book_list_redirect(request)` | `/books-redirect/` (`reviews:book_list_redirect`) | GET | Public named redirect to the Book list. |
+| Django login | `/accounts/login/` (`login`) | GET, POST | Standard authentication form with CSRF, validation errors, and safe `next` preservation. |
+
+Reading routes remain GET-only. Review create and edit reject methods other
+than GET and POST with HTTP 405. Invalid Review forms render HTTP 200 with
+field or non-field errors and do not write data. Successful writes follow
+POST-Redirect-GET and use Django messages.
+
+### Templates and security
+
+`reviews/book_search.html` and `reviews/review_form.html` extend the established
+`reviews/base.html`. The Review template is shared by create and edit and
+renders a CSRF token, field errors, and non-field errors.
+`registration/login.html` renders Django's authentication form with the same
+error and CSRF behavior and preserves `next`. The base layout displays queued
+Django messages.
+
+The Book detail view prepares the current Review action: an author receives an
+edit link, an authenticated User without a Review receives a create link, and
+an anonymous visitor is guided through the protected create route to login.
+Server-side authentication and ownership checks remain authoritative. Django
+automatic escaping remains enabled for model, form, request, and message
+values.
+
+### Deferred after Exercise 8
+
+Exercise 8 does not add Review deletion, user registration, rating-based
+sorting, pagination, HTMX, advanced CSS, model changes, or migrations.

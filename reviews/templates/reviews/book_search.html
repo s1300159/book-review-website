@@ -1,0 +1,46 @@
+{% extends "reviews/base.html" %}
+
+{% block title %}Search books | Book Review Website{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="search-heading">
+    <h2 id="search-heading">Search books</h2>
+
+    <form method="get" action="{% url 'reviews:book_search' %}">
+      {{ form.non_field_errors }}
+      {% for field in form %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.errors %}
+            {{ field.errors }}
+          {% endif %}
+        </p>
+      {% endfor %}
+      <button type="submit">Search</button>
+    </form>
+
+    {% if query %}
+      <p>Search query: {{ query }}</p>
+    {% endif %}
+    {% if min_rating is not None %}
+      <p>Minimum rating: {{ min_rating }}</p>
+    {% endif %}
+
+    {% if books %}
+      <ul>
+        {% for book in books %}
+          <li>
+            <a href="{% url 'reviews:book_detail' book_id=book.pk %}">
+              {{ book.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% elif show_no_results %}
+      <p>No books matched. Try changing your search conditions.</p>
+    {% elif not form.errors %}
+      <p>No books are available.</p>
+    {% endif %}
+  </section>
+{% endblock %}

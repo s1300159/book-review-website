@@ -18,10 +18,14 @@ Main directories:
 - Exercise 7 renders the book-list and book-detail views through app-namespaced
   templates that inherit a shared base layout, and records up to five unique
   recently viewed Book IDs in each browser session.
-- Review form processing and persistence, rating sorting and filtering, and
-  pagination have not been implemented.
-- `forms.py` does not exist; the current templates cover only the shared base,
-  book list, and book detail.
+- Exercise 8 adds validated GET search controls for partial title and optional
+  minimum average rating, authenticated Review creation and author-only
+  editing, Django's standard login interface, messages, CSRF-protected shared
+  forms, and related tests and documentation.
+- `reviews/forms.py` defines `BookSearchForm` and `ReviewForm`; templates now
+  also cover search, Review create/edit, and login.
+- Rating sorting, pagination, HTMX, Review deletion, and user registration
+  have not been implemented.
 - Development tools including pytest, Black, and Pylint are configured.
 - OpenSpec has accepted `book-review-data-model` and `basic-book-views`
   specifications.

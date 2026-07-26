@@ -38,9 +38,7 @@
     </section>
 
     <p>
-      <a href="{% url 'reviews:review_create' book_id=book.pk %}">
-        Write a review
-      </a>
+      <a href="{{ review_action_url }}">{{ review_action_label }}</a>
     </p>
   </article>
 {% endblock %}

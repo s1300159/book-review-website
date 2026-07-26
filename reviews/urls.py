@@ -13,6 +13,11 @@ urlpatterns = [
         views.review_create,
         name="review_create",
     ),
+    path(
+        "reviews/<int:review_id>/edit/",
+        views.review_edit,
+        name="review_edit",
+    ),
     path("books/<int:book_id>/", views.book_detail, name="book_detail"),
     path(
         "books-redirect/",
