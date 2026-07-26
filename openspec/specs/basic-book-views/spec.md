@@ -54,7 +54,7 @@ The system SHALL expose `book_detail(request, book_id)` at `GET /books/<int:book
 - **THEN** the system returns HTTP 404 without rendering a successful detail page
 
 ### Requirement: Partial title search
-The system SHALL expose `book_search(request)` at `GET /books/search/` with URL name `reviews:book_search`. It SHALL validate GET parameters with `BookSearchForm`, trim optional `q` and use case-insensitive partial-title matching when non-empty, and apply an optional integer `min_rating` from 1 through 5 against the average related Review rating. Search parameters SHALL NOT be saved in the session, and the view SHALL NOT add sorting, pagination, or HTMX.
+The system SHALL expose `book_search(request)` at `GET /books/search/` with URL name `reviews:book_search`. It SHALL validate GET parameters with `BookSearchForm`, trim optional `q` and use case-insensitive partial-title matching when non-empty, and apply an optional integer `min_rating` from 1 through 5 against the average related Review rating. Search parameters SHALL NOT be saved in the session, normal GET requests SHALL return the complete search page, and HTMX GET requests SHALL return the search-result fragment. The view SHALL NOT add sorting or pagination.
 
 #### Scenario: Partial title matches books
 - **WHEN** a user supplies a valid non-empty `q` matching part of one or more Book titles with any letter case
