@@ -51,8 +51,8 @@
 
 ## 7. Git, Pull Request, and Approved Finalization
 
-- [ ] 7.1 Confirm `git diff --check`, stage only Issue #7 files, and create a short English commit referencing Issue #7.
-- [ ] 7.2 Push `feature/forms-and-user-input` without pushing directly to `main`.
+- [x] 7.1 Confirm `git diff --check`, stage only Issue #7 files, and create a short English commit referencing Issue #7.
+- [x] 7.2 Push `feature/forms-and-user-input` without pushing directly to `main`.
 - [ ] 7.3 Open a Pull Request for Issue #7 with scope, verification results, and `Closes #7`.
 - [ ] 7.4 Confirm required Pull Request conditions, checks, review feedback, and merge readiness.
 - [ ] 7.5 After explicit user approval, merge the Pull Request into `main`.
