@@ -5,6 +5,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.vary import vary_on_headers
 from django.views.decorators.http import require_GET, require_http_methods
 
 from reviews.forms import BookSearchForm, DUPLICATE_REVIEW_ERROR, ReviewForm
@@ -96,6 +97,7 @@ def book_detail(request, book_id):
 
 
 @require_GET
+@vary_on_headers("HX-Request")
 def book_search(request):
     form = BookSearchForm(request.GET)
     books = Book.objects.all()
@@ -118,9 +120,14 @@ def book_search(request):
         books = Book.objects.none()
 
     show_no_results = filters_applied and not books.exists()
+    template_name = (
+        "reviews/partials/book_results.html"
+        if request.htmx
+        else "reviews/book_search.html"
+    )
     return render(
         request,
-        "reviews/book_search.html",
+        template_name,
         {
             "form": form,
             "books": books,

@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -17,8 +19,161 @@ def test_search_uses_form_template_and_shared_layout(client):
     assert response.status_code == 200
     assert "reviews/book_search.html" in _rendered_template_names(response)
     assert "reviews/base.html" in _rendered_template_names(response)
+    assert "reviews/partials/book_results.html" in _rendered_template_names(response)
     assert b'name="q"' in response.content
     assert b'name="min_rating"' in response.content
+    assert b'hx-target="#book-results"' in response.content
+    assert b'hx-push-url="true"' in response.content
+    assert b"delay:300ms" in response.content
+    assert b"reviews/htmx.min.js" in response.content
+
+
+@pytest.mark.django_db
+def test_htmx_search_returns_only_the_result_partial(client):
+    Book.objects.create(title="Dune")
+
+    response = client.get(
+        reverse("reviews:book_search"),
+        HTTP_HX_REQUEST="true",
+    )
+
+    template_names = _rendered_template_names(response)
+    assert response.status_code == 200
+    assert "reviews/partials/book_results.html" in template_names
+    assert "reviews/book_search.html" not in template_names
+    assert "reviews/base.html" not in template_names
+    assert b"View details for Dune" in response.content
+    assert b"<html" not in response.content
+    assert b"<form" not in response.content
+    assert "HX-Request" in response.headers["Vary"]
+
+
+def _create_htmx_search_books():
+    user_model = get_user_model()
+    alice = user_model.objects.create_user(username="alice")
+    bob = user_model.objects.create_user(username="bob")
+    dune_messiah = Book.objects.create(title="Dune Messiah")
+    dune = Book.objects.create(title="Dune")
+    foundation = Book.objects.create(title="Foundation")
+    Book.objects.create(title="Unrated Book")
+    Review.objects.create(
+        text="Great.",
+        rating=4,
+        book=dune_messiah,
+        user=alice,
+    )
+    Review.objects.create(
+        text="Below.",
+        rating=3,
+        book=dune,
+        user=alice,
+    )
+    Review.objects.create(
+        text="Excellent.",
+        rating=5,
+        book=foundation,
+        user=bob,
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("parameters", "included_titles", "excluded_titles"),
+    [
+        (
+            {"q": "dune"},
+            ("Dune Messiah", "Dune"),
+            ("Foundation", "Unrated Book"),
+        ),
+        (
+            {"min_rating": "4"},
+            ("Dune Messiah", "Foundation"),
+            ("Dune", "Unrated Book"),
+        ),
+        (
+            {"q": "dune", "min_rating": "4"},
+            ("Dune Messiah",),
+            ("Dune", "Foundation", "Unrated Book"),
+        ),
+        (
+            {},
+            ("Dune Messiah", "Dune", "Foundation", "Unrated Book"),
+            (),
+        ),
+    ],
+)
+def test_htmx_search_uses_existing_filters(
+    client,
+    parameters,
+    included_titles,
+    excluded_titles,
+):
+    _create_htmx_search_books()
+
+    response = client.get(
+        reverse("reviews:book_search"),
+        parameters,
+        HTTP_HX_REQUEST="true",
+    )
+
+    content = response.content.decode()
+    assert response.status_code == 200
+    for title in included_titles:
+        assert re.search(rf"View details for {re.escape(title)}\s*</a>", content)
+    for title in excluded_titles:
+        assert not re.search(rf"View details for {re.escape(title)}\s*</a>", content)
+
+
+@pytest.mark.django_db
+def test_htmx_search_displays_no_match_state(client):
+    Book.objects.create(title="Dune")
+
+    response = client.get(
+        reverse("reviews:book_search"),
+        {"q": "Foundation"},
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert b"No books matched." in response.content
+    assert b"Try changing your search conditions." in response.content
+    assert b"View details for Dune" not in response.content
+
+
+@pytest.mark.django_db
+def test_htmx_search_does_not_save_values_in_session(client):
+    Book.objects.create(title="Dune")
+
+    response = client.get(
+        reverse("reviews:book_search"),
+        {"q": "Dune", "min_rating": "4"},
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert views.RECENTLY_VIEWED_BOOK_IDS_SESSION_KEY not in client.session
+    assert "q" not in client.session
+    assert "min_rating" not in client.session
+
+
+@pytest.mark.django_db
+def test_htmx_search_fragment_escapes_dynamic_html(client):
+    Book.objects.create(
+        title="<script>unsafe title</script>",
+        description="<img src=x onerror=alert(1)>",
+    )
+
+    response = client.get(
+        reverse("reviews:book_search"),
+        {"q": "<script>"},
+        HTTP_HX_REQUEST="true",
+    )
+
+    assert response.status_code == 200
+    assert b"<script>" not in response.content
+    assert b"<img src=x" not in response.content
+    assert b"&lt;script&gt;" in response.content
+    assert b"&lt;img src=x onerror=alert(1)&gt;" in response.content
 
 
 @pytest.mark.django_db

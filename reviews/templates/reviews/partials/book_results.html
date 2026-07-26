@@ -1,0 +1,54 @@
+{% if form.errors %}
+  <div class="form-errors" role="alert">
+    <p>Search input is invalid. Check the selected conditions.</p>
+    {{ form.errors }}
+  </div>
+{% else %}
+  <div class="search-summary">
+    {% if query %}
+      <p>Search query: {{ query }}</p>
+    {% endif %}
+    {% if min_rating is not None %}
+      <p>Minimum rating: {{ min_rating }}</p>
+    {% endif %}
+  </div>
+
+  {% if books %}
+    <ul class="book-grid">
+      {% for book in books %}
+        <li>
+          <article class="book-card">
+            {% if book.cover_image %}
+              <img class="book-cover"
+                   src="{{ book.cover_image.url }}"
+                   alt="Cover of {{ book.title }}">
+            {% else %}
+              <div class="cover-placeholder" aria-hidden="true">No cover</div>
+            {% endif %}
+            <div class="card-content">
+              <h2>{{ book.title }}</h2>
+              {% with rating=book.average_rating %}
+                <p class="rating">Average rating: {% if rating is None %}No ratings yet{% else %}{{ rating|floatformat:1 }} / 5{% endif %}</p>
+              {% endwith %}
+              <p>
+                {% if book.description %}
+                  {{ book.description|truncatewords:32 }}
+                {% else %}
+                  No description available.
+                {% endif %}
+              </p>
+              <a class="text-link"
+                 href="{% url 'reviews:book_detail' book_id=book.pk %}">
+                View details for {{ book.title }}
+              </a>
+            </div>
+          </article>
+        </li>
+      {% endfor %}
+    </ul>
+  {% elif show_no_results %}
+    <p class="empty-state">No books matched. Try changing your search conditions.</p>
+  {% else %}
+    <p class="empty-state">No books are available.</p>
+  {% endif %}
+{% endif %}
